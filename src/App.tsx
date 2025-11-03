@@ -64,6 +64,7 @@ export default function App() {
   async function fetchPreviousValues(forEmail: string) {
   setLoading(true);
   setMessage(null);
+
   const { data, error } = await supabase
     .from("user_chart_values")
     .select("values_json")
@@ -78,11 +79,11 @@ export default function App() {
 
   if (data?.values_json) {
     setPrevious(data.values_json);
-    setSadPath(data.values_json); // 👈 directly set your chart values
-    setMessage("Loaded your previously saved chart values.");
+    setSadPath(data.values_json);
+    setMessage("Loaded your previously saved values.");
   } else {
     setPrevious(null);
-    setMessage("No previous data found. Using default values.");
+    setMessage("No saved data found. You can create a new record.");
   }
 
   setLoading(false);
@@ -90,19 +91,30 @@ export default function App() {
 
 
   async function handleConfirmOverwrite() {
-    if (!email) return;
-    setLoading(true);
-    const payload = { email, chart_key: "sad_path", values_json: sadPath };
+  if (!email) return;
+  setLoading(true);
 
-    const { error } = await supabase
-      .from("user_chart_values")
-      .upsert(payload, { onConflict: "email,chart_key" });
+  const payload = {
+    email,
+    chart_key: "sad_path",
+    values_json: sadPath
+  };
 
-    setLoading(false);
-    if (error) return setMessage(`Save failed: ${error.message}`);
-    setMessage("Saved successfully. Your chart reflects the latest values.");
+  const { data, error } = await supabase
+    .from("user_chart_values")
+    .upsert(payload, { onConflict: "email,chart_key" })
+    .select();
+
+  setLoading(false);
+
+  if (error) {
+    console.error(error);
+    setMessage(`Save failed: ${error.message}`);
+  } else {
+    setMessage("Saved successfully ✅");
     setPrevious(sadPath);
   }
+}
 
   async function handleSave() {
   setMessage(null);
@@ -115,9 +127,27 @@ export default function App() {
   setEmailLocked(true);
   localStorage.setItem("call-analytics-email", email);
 
-  await fetchPreviousValues(email);
-}
+  // First, try to fetch existing data
+  const { data, error } = await supabase
+    .from("user_chart_values")
+    .select("values_json")
+    .eq("email", email)
+    .eq("chart_key", "sad_path")
+    .maybeSingle();
 
+  if (error && error.code !== "PGRST116") {
+    setMessage(`Error fetching previous values: ${error.message}`);
+    return;
+  }
+
+  if (data?.values_json) {
+    // Data already exists → overwrite confirmation or direct save
+    await handleConfirmOverwrite();
+  } else {
+    // No data yet → save new record
+    await handleConfirmOverwrite();
+  }
+}
 
   // Handlers for editing one slice
   function updateSlice(index: number, value: number) {
