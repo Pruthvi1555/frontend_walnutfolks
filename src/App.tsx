@@ -62,21 +62,32 @@ export default function App() {
 
   // Fetch any previously saved values for this email
   async function fetchPreviousValues(forEmail: string) {
-    setLoading(true);
-    setMessage(null);
-    const { data, error } = await supabase
-      .from("user_chart_values")
-      .select("email, chart_key, values_json, updated_at")
-      .eq("email", forEmail)
-      .eq("chart_key", "sad_path")
-      .maybeSingle();
+  setLoading(true);
+  setMessage(null);
+  const { data, error } = await supabase
+    .from("user_chart_values")
+    .select("values_json")
+    .eq("email", forEmail)
+    .eq("chart_key", "sad_path")
+    .maybeSingle();
 
-    if (error && error.code !== "PGRST116") { // ignore No Rows error
-      setMessage(`Error fetching previous values: ${error.message}`);
-    }
-    setPrevious(data?.values_json ?? null);
-    setLoading(false);
+  if (error && error.code !== "PGRST116") {
+    setMessage(`Error fetching previous values: ${error.message}`);
+    console.error(error);
   }
+
+  if (data?.values_json) {
+    setPrevious(data.values_json);
+    setSadPath(data.values_json); // 👈 directly set your chart values
+    setMessage("Loaded your previously saved chart values.");
+  } else {
+    setPrevious(null);
+    setMessage("No previous data found. Using default values.");
+  }
+
+  setLoading(false);
+}
+
 
   async function handleConfirmOverwrite() {
     if (!email) return;
@@ -94,20 +105,19 @@ export default function App() {
   }
 
   async function handleSave() {
-    setMessage(null);
-    if (!email) {
-      setMessage("Please enter your email first.");
-      return;
-    }
-    setEmailLocked(true);
-    localStorage.setItem("call-analytics-email", email);
-    await fetchPreviousValues(email);
+  setMessage(null);
 
-    // If nothing existed before, just save immediately
-    if (!previous) {
-      await handleConfirmOverwrite();
-    }
+  if (!email) {
+    setMessage("Please enter your email first.");
+    return;
   }
+
+  setEmailLocked(true);
+  localStorage.setItem("call-analytics-email", email);
+
+  await fetchPreviousValues(email);
+}
+
 
   // Handlers for editing one slice
   function updateSlice(index: number, value: number) {
