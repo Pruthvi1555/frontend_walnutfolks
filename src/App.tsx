@@ -55,9 +55,14 @@ export default function App() {
   const [message, setMessage] = useState<string | null>(null);
 
   // Try to restore last-used email from localStorage (pure convenience)
-  useEffect(() => {
-    const e = localStorage.getItem("call-analytics-email");
-    if (e) { setEmail(e); }
+  // Auto-load last used email and fetch values on mount
+useEffect(() => {
+  const savedEmail = localStorage.getItem("call-analytics-email");
+  if (savedEmail) {
+    setEmail(savedEmail);
+    setEmailLocked(true); // Optional: lock input immediately
+    fetchPreviousValues(savedEmail); // 👈 This loads their chart
+    }
   }, []);
 
   // Fetch any previously saved values for this email
