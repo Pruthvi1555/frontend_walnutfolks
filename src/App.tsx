@@ -2,8 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 
-const SUPABASE_URL = (window as any).ENV_SUPABASE_URL || "https://nekhkrghyxgpvqmywhvu.supabase.co";
-const SUPABASE_ANON_KEY = (window as any).ENV_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5la2hrcmdoeXhncHZxbXl3aHZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NjQwMzUsImV4cCI6MjA3NzI0MDAzNX0.bVg5A8TkHZU-aQogmn6fylkjJQ8dan8FaTz8kV677KU";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+
+
+//const SUPABASE_URL = (window as any).ENV_SUPABASE_URL || "https://nekhkrghyxgpvqmywhvu.supabase.co";
+//const SUPABASE_ANON_KEY = (window as any).ENV_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5la2hrcmdoeXhncHZxbXl3aHZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2NjQwMzUsImV4cCI6MjA3NzI0MDAzNX0.bVg5A8TkHZU-aQogmn6fylkjJQ8dan8FaTz8kV677KU";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
